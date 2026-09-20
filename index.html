@@ -1405,8 +1405,40 @@ function calculateDistance(
 
 }
 
+/* CAMERA */
+async function startCamera(){
+    try{
+        if(cameraStream){
+            cameraStream.getTracks().forEach(t => t.stop());
+        }
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video:{ facingMode:"user" },
+            audio:false
+        });
+        const video = document.getElementById("cameraVideo");
+        video.srcObject = cameraStream;
+        video.classList.remove("hidden");
+        document.getElementById("cameraPlaceholder").classList.add("hidden");
+        document.getElementById("photoPreview").style.display = "none";
+        await video.play();
+    }catch(error){
+        console.error(error);
+        toast("เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง","danger");
+    }
+}
 
-/
+function takePhoto(){
+    const video = document.getElementById("cameraVideo");
+    if(!cameraStream || !video.videoWidth){
+        toast("กรุณาเปิดกล้องก่อน","warning");
+        return;
+    }
+    const scale = Math.min(1, 800 / video.videoWidth);
+    const width = Math.round(video.videoWidth * scale);
+    const height = Math.round(video.videoHeight * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
     const ctx =
         canvas.getContext("2d");
 
