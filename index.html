@@ -1,4 +1,1870 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#152A3D">
+<title>ระบบเช็คอินพนักงาน</title>
 
-  
-  
-      
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+
+<style>
+:root{
+    --primary:#152A3D;
+    --gold:#D9A441;
+    --bg:#F4F5F4;
+    --white:#FFFFFF;
+    --success:#2E8462;
+    --danger:#C24A3A;
+    --warning:#D98921;
+    --text:#17212B;
+    --muted:#6B7280;
+    --border:#E2E5E8;
+    --shadow:0 5px 18px rgba(0,0,0,.07);
+}
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Sarabun",sans-serif;
+}
+
+body{ min-height:100vh; }
+
+button,input,select{ font-family:inherit; }
+button{ cursor:pointer; }
+
+.app{
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    margin:auto;
+    background:var(--bg);
+    padding-bottom:90px;
+}
+
+/* HEADER */
+.header{
+    background:var(--primary);
+    color:white;
+    padding:calc(18px + env(safe-area-inset-top)) 18px 18px;
+    border-radius:0 0 22px 22px;
+}
+.header-title{ font-size:22px; font-weight:700; }
+.header-sub{ font-size:13px; opacity:.75; margin-top:2px; }
+
+/* CONTENT */
+.content{ padding:16px; }
+
+.card{
+    background:var(--white);
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+}
+.card-title{
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:12px;
+}
+
+/* FORM */
+label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+}
+input,select{
+    width:100%;
+    height:46px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:0 13px;
+    font-size:15px;
+    outline:none;
+    background:white;
+}
+input:focus,select:focus{ border-color:var(--gold); }
+
+/* BUTTON */
+.btn{
+    width:100%;
+    min-height:48px;
+    border:0;
+    border-radius:13px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 14px;
+}
+.btn-primary{ background:var(--primary); color:white; }
+.btn-gold{ background:var(--gold); color:#17212B; }
+.btn-success{ background:var(--success); color:white; }
+.btn-danger{ background:var(--danger); color:white; }
+.btn-warning{ background:var(--warning); color:white; }
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* GRID */
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+
+/* STATUS */
+.status-box{
+    padding:13px;
+    border-radius:14px;
+    margin-bottom:12px;
+    font-size:14px;
+}
+.status-info{ background:#EEF3F7; color:var(--primary); }
+.status-success{ background:#E8F5EF; color:#236B50; }
+.status-danger{ background:#FBECEA; color:#A7372B; }
+.status-warning{ background:#FFF3E3; color:#A65D08; }
+
+/* GPS */
+.gps-main{ display:flex; align-items:center; gap:12px; }
+.gps-icon{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:#EEF3F7;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+}
+.gps-distance{ font-size:20px; font-weight:700; }
+.gps-small{ font-size:12px; color:var(--muted); }
+
+/* CAMERA */
+.camera-box{
+    width:100%;
+    background:#101010;
+    border-radius:16px;
+    overflow:hidden;
+    position:relative;
+    min-height:240px;
+}
+#cameraVideo{
+    display:block;
+    width:100%;
+    max-height:380px;
+    object-fit:cover;
+}
+#photoPreview{
+    display:none;
+    width:100%;
+    max-height:380px;
+    object-fit:cover;
+}
+.camera-placeholder{
+    min-height:240px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    color:white;
+    opacity:.7;
+}
+.camera-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+}
+
+/* CHECK STATUS */
+.check-status{
+    text-align:center;
+    padding:16px;
+    border-radius:15px;
+    background:#F7F8F8;
+}
+.check-time{ font-size:24px; font-weight:700; }
+.check-label{ font-size:13px; color:var(--muted); }
+
+/* LOG */
+.log-item{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:13px;
+    margin-bottom:9px;
+    background:white;
+}
+.log-top{ display:flex; justify-content:space-between; gap:10px; }
+.log-name{ font-weight:700; }
+.log-date{ font-size:12px; color:var(--muted); margin-top:3px; }
+.log-row{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-size:13px;
+    margin-top:9px;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px 9px;
+    border-radius:99px;
+    font-size:12px;
+    font-weight:700;
+}
+.badge-success{ background:#E8F5EF; color:#236B50; }
+.badge-danger{ background:#FBECEA; color:#A7372B; }
+.badge-warning{ background:#FFF3E3; color:#A65D08; }
+.badge-info{ background:#EEF3F7; color:var(--primary); }
+
+/* ADMIN */
+.stat{
+    text-align:center;
+    padding:12px 5px;
+    border-radius:14px;
+    background:#F7F8F8;
+}
+.stat-number{ font-size:24px; font-weight:700; }
+.stat-label{ font-size:12px; color:var(--muted); }
+
+/* NAV */
+.bottom-nav{
+    position:fixed;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:520px;
+    background:white;
+    border-top:1px solid var(--border);
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    padding:7px 7px calc(7px + env(safe-area-inset-bottom));
+    z-index:50;
+}
+.nav-btn{
+    border:0;
+    background:transparent;
+    color:#7B8187;
+    min-height:58px;
+    border-radius:12px;
+    font-size:11px;
+}
+.nav-btn .nav-icon{
+    display:block;
+    font-size:21px;
+    margin-bottom:2px;
+}
+.nav-btn.active{
+    color:var(--primary);
+    background:#EEF3F7;
+    font-weight:700;
+}
+
+/* TAB */
+.tab{ display:none; }
+.tab.active{ display:block; }
+
+/* MODAL */
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:100;
+    padding:20px;
+    align-items:flex-end;
+    justify-content:center;
+}
+.modal.show{ display:flex; }
+.modal-box{
+    width:100%;
+    max-width:500px;
+    background:white;
+    border-radius:20px;
+    padding:18px;
+    max-height:85vh;
+    overflow:auto;
+}
+.modal-title{ font-size:18px; font-weight:700; margin-bottom:12px; }
+
+/* TOAST */
+#toast{
+    position:fixed;
+    left:50%;
+    bottom:82px;
+    transform:translateX(-50%) translateY(20px);
+    width:calc(100% - 32px);
+    max-width:480px;
+    padding:13px 15px;
+    border-radius:13px;
+    color:white;
+    background:var(--primary);
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    z-index:200;
+    font-size:14px;
+}
+#toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+.empty{
+    text-align:center;
+    color:var(--muted);
+    padding:25px 10px;
+}
+.photo-link{
+    display:inline-block;
+    margin-top:8px;
+    color:var(--primary);
+    font-weight:700;
+    text-decoration:none;
+}
+.office-coordinates{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.6;
+}
+.spacer{ height:12px; }
+.hidden{ display:none!important; }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="header">
+    <div class="header-title">ระบบเช็คอินพนักงาน</div>
+    <div class="header-sub">ระบบลงเวลาเข้า–ออกงาน</div>
+</header>
+
+<main class="content">
+
+<!-- ================= CHECK IN ================= -->
+<section id="tab-checkin" class="tab active">
+
+    <div id="connectionStatus" class="status-box status-info">
+        🔄 กำลังตรวจสอบระบบ...
+    </div>
+
+    <div class="card">
+        <div class="card-title">👤 ข้อมูลพนักงาน</div>
+
+        <label for="employeeName">ชื่อพนักงาน</label>
+        <input id="employeeName" type="text" placeholder="กรอกชื่อ-นามสกุล">
+
+        <div class="spacer"></div>
+
+        <label for="employeeShift">กะทำงาน</label>
+        <select id="employeeShift">
+            <option value="">-- เลือกกะ --</option>
+            <option value="กะ A">กะ A — 06:00–07:00</option>
+            <option value="กะ B">กะ B — 18:00–19:00</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="card-title">📍 ตำแหน่งปัจจุบัน</div>
+
+        <div class="gps-main">
+            <div class="gps-icon">📍</div>
+            <div>
+                <div id="distanceText" class="gps-distance">ยังไม่ได้ตรวจสอบ</div>
+                <div id="gpsText" class="gps-small">กดตรวจสอบตำแหน่ง</div>
+            </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <button id="gpsBtn" class="btn btn-primary" onclick="getLocation()">
+            📍 ตรวจสอบตำแหน่ง
+        </button>
+
+        <div class="spacer"></div>
+
+        <div class="office-coordinates">
+            สำนักงาน<br>
+            14.094473, 100.576322<br>
+            รัศมีอนุญาต 150 เมตร
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">📷 รูปถ่ายยืนยันตัวตน</div>
+
+        <div class="camera-box">
+            <video id="cameraVideo" autoplay playsinline muted class="hidden"></video>
+            <img id="photoPreview" alt="รูปถ่าย">
+            <div id="cameraPlaceholder" class="camera-placeholder">
+                <div style="font-size:45px">📷</div>
+                <div>กดเปิดกล้องเพื่อถ่ายรูป</div>
+            </div>
+        </div>
+
+        <div class="camera-actions">
+            <button class="btn btn-primary" onclick="startCamera()">📷 เปิดกล้อง</button>
+            <button class="btn btn-gold" onclick="takePhoto()">📸 ถ่ายรูป</button>
+        </div>
+
+        <button id="retakeBtn" class="btn btn-warning hidden"
+                style="margin-top:8px" onclick="retakePhoto()">
+            🔄 ถ่ายใหม่
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🕐 สถานะวันนี้</div>
+        <div id="todayStatus" class="check-status">
+            <div class="check-label">ยังไม่มีการเช็กอิน</div>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <button id="checkinBtn" class="btn btn-success" onclick="checkIn()">
+            📍 เช็กอิน
+        </button>
+        <button id="checkoutBtn" class="btn btn-danger" onclick="checkOut()" disabled>
+            🏁 เช็กเอาต์
+        </button>
+    </div>
+
+</section>
+
+
+<!-- ================= LOG ================= -->
+<section id="tab-log" class="tab">
+
+    <div class="card">
+        <div class="card-title">📋 รายการลงเวลาของฉันวันนี้</div>
+        <button class="btn btn-primary" onclick="loadTodayLogs()">
+            🔄 รีเฟรชข้อมูล
+        </button>
+    </div>
+
+    <div id="todayLogs"></div>
+
+</section>
+
+
+<!-- ================= ADMIN ================= -->
+<section id="tab-admin" class="tab">
+
+    <div id="adminLoginCard" class="card">
+        <div class="card-title">🔐 เข้าสู่ระบบ Admin</div>
+
+        <label for="adminEmail">อีเมล</label>
+        <input id="adminEmail" type="email" autocomplete="username"
+               placeholder="admin@example.com">
+
+        <div class="spacer"></div>
+
+        <label for="adminPassword">รหัสผ่าน</label>
+        <input id="adminPassword" type="password" autocomplete="current-password"
+               placeholder="กรอกรหัสผ่าน">
+
+        <div class="spacer"></div>
+
+        <button id="adminLoginBtn" class="btn btn-primary" onclick="adminLogin()">
+            🔐 เข้าสู่ระบบ
+        </button>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+
+        <div class="card">
+            <div class="card-title">📊 สรุปวันนี้</div>
+
+            <div class="grid3">
+                <div class="stat">
+                    <div id="statTotal" class="stat-number">0</div>
+                    <div class="stat-label">ทั้งหมด</div>
+                </div>
+                <div class="stat">
+                    <div id="statOnTime" class="stat-number">0</div>
+                    <div class="stat-label">ตรงเวลา</div>
+                </div>
+                <div class="stat">
+                    <div id="statLate" class="stat-number">0</div>
+                    <div class="stat-label">สาย</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🔎 ค้นหาพนักงาน</div>
+            <input id="adminSearch" type="search" placeholder="ค้นหาชื่อ..."
+                   oninput="filterAdminLogs()">
+            <div class="spacer"></div>
+            <div class="grid2">
+                <button class="btn btn-primary" onclick="loadAdminLogs()">🔄 รีเฟรช</button>
+                <button class="btn btn-danger" onclick="adminLogout()">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <div id="adminLogs"></div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= SETTINGS ================= -->
+<section id="tab-settings" class="tab">
+
+    <div class="card">
+        <div class="card-title">⚙️ ตั้งค่าระบบ</div>
+
+        <label for="settingName">ชื่อพนักงานเริ่มต้น</label>
+        <input id="settingName" type="text">
+
+        <div class="spacer"></div>
+
+        <label for="settingShift">กะทำงานเริ่มต้น</label>
+        <select id="settingShift">
+            <option value="">-- ไม่กำหนด --</option>
+            <option value="กะ A">กะ A</option>
+            <option value="กะ B">กะ B</option>
+        </select>
+
+        <div class="spacer"></div>
+
+        <button class="btn btn-success" onclick="saveSettings()">💾 บันทึก</button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">🏢 สำนักงาน</div>
+        <div class="office-coordinates">
+            Latitude: 14.094473<br>
+            Longitude: 100.576322<br>
+            รัศมี: 150 เมตร
+        </div>
+    </div>
+
+</section>
+
+</main>
+
+
+<!-- NAV -->
+<nav class="bottom-nav">
+    <button id="nav-checkin" class="nav-btn active" onclick="setTab('checkin')">
+        <span class="nav-icon">📍</span>เช็กอิน
+    </button>
+    <button id="nav-log" class="nav-btn" onclick="setTab('log')">
+        <span class="nav-icon">📋</span>รายการ
+    </button>
+    <button id="nav-admin" class="nav-btn" onclick="setTab('admin')">
+        <span class="nav-icon">🔐</span>Admin
+    </button>
+    <button id="nav-settings" class="nav-btn" onclick="setTab('settings')">
+        <span class="nav-icon">⚙️</span>ตั้งค่า
+    </button>
+</nav>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">📷 รูปหลักฐาน</div>
+        <img id="modalImage" alt="รูปหลักฐาน" style="width:100%;border-radius:14px">
+        <div class="spacer"></div>
+        <button class="btn btn-primary" onclick="closeImageModal()">ปิด</button>
+    </div>
+</div>
+
+
+<script>
+/* =====================================================
+   SUPABASE
+===================================================== */
+
+const SUPABASE_URL = "https://pjpmqwupamdqeacyqywm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_OYlOhtRV83Ru_7OGJZJ9JA_XAYJAF-t";
+
+/* client ของพนักงาน: ล็อกอินแบบ anonymous ต่ออุปกรณ์ (จำ session ไว้) */
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+/* client ของแอดมิน: แยกต่างหาก ไม่จำ session
+   (ปิดหน้าเว็บแล้วต้องล็อกอินใหม่ และไม่ไปทับ session ของพนักงาน) */
+const adminClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    {
+        auth:{
+            persistSession:false,
+            autoRefreshToken:true,
+            detectSessionInUrl:false,
+            storageKey:"sb-admin-auth"
+        }
+    }
+);
+
+
+/* =====================================================
+   CONFIG
+===================================================== */
+
+const OFFICE_LAT = 14.094473;
+const OFFICE_LNG = 100.576322;
+const OFFICE_RADIUS = 150;
+
+const STORAGE_BUCKET = "attendance-photos";
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let currentPosition = null;
+let currentDistance = null;
+
+let cameraStream = null;
+let photoBlob = null;
+
+let todayRecord = null;
+
+let adminData = [];
+let adminLoggedIn = false;
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    loadSettings();
+
+    try{
+        await ensureSession();
+    }
+    catch(error){
+        console.error(error);
+        setConnection(
+            "danger",
+            "🔴 เริ่มระบบไม่สำเร็จ — ตรวจสอบว่าเปิด Anonymous sign-ins ใน Supabase แล้ว"
+        );
+        return;
+    }
+
+    await testConnection();
+    await loadTodayRecord();
+    await loadTodayLogs();
+
+});
+
+
+/* พนักงานแต่ละเครื่องได้ตัวตนแบบ anonymous หนึ่งตัว */
+async function ensureSession(){
+
+    const { data:{ session } } =
+        await supabaseClient.auth.getSession();
+
+    if(session){
+        return session;
+    }
+
+    const { data, error } =
+        await supabaseClient.auth.signInAnonymously();
+
+    if(error){
+        throw error;
+    }
+
+    return data.session;
+
+}
+
+
+/* =====================================================
+   TAB
+===================================================== */
+
+function setTab(tab){
+
+    document.querySelectorAll(".tab")
+        .forEach(el => el.classList.remove("active"));
+
+    document.querySelectorAll(".nav-btn")
+        .forEach(el => el.classList.remove("active"));
+
+    const section = document.getElementById("tab-"+tab);
+    const nav = document.getElementById("nav-"+tab);
+
+    if(section) section.classList.add("active");
+    if(nav) nav.classList.add("active");
+
+    if(tab === "log"){
+        loadTodayLogs();
+    }
+
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+let toastTimer;
+
+function toast(message,type="info"){
+
+    const el = document.getElementById("toast");
+
+    el.textContent = message;
+
+    const colors = {
+        success:"var(--success)",
+        danger:"var(--danger)",
+        warning:"var(--warning)",
+        info:"var(--primary)"
+    };
+
+    el.style.background = colors[type] || colors.info;
+
+    el.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(()=>{
+        el.classList.remove("show");
+    },3000);
+
+}
+
+
+/* =====================================================
+   CONNECTION
+===================================================== */
+
+function setConnection(type,text){
+
+    const el = document.getElementById("connectionStatus");
+
+    el.className = "status-box status-" + type;
+    el.textContent = text;
+
+}
+
+async function testConnection(){
+
+    try{
+
+        const { error } =
+            await supabaseClient
+                .from("attendance_logs")
+                .select("id")
+                .limit(1);
+
+        if(error){
+            throw error;
+        }
+
+        setConnection("success","🟢 ระบบพร้อมใช้งาน");
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        setConnection("danger","🔴 เชื่อมต่อ Supabase ไม่สำเร็จ");
+
+    }
+
+}
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+function loadSettings(){
+
+    const name = localStorage.getItem("employee-name") || "";
+    const shift = localStorage.getItem("employee-shift") || "";
+
+    document.getElementById("employeeName").value = name;
+    document.getElementById("employeeShift").value = shift;
+    document.getElementById("settingName").value = name;
+    document.getElementById("settingShift").value = shift;
+
+}
+
+function saveSettings(){
+
+    const name = document.getElementById("settingName").value.trim();
+    const shift = document.getElementById("settingShift").value;
+
+    localStorage.setItem("employee-name",name);
+    localStorage.setItem("employee-shift",shift);
+
+    document.getElementById("employeeName").value = name;
+    document.getElementById("employeeShift").value = shift;
+
+    todayRecord = null;
+    loadTodayRecord();
+
+    toast("บันทึกการตั้งค่าแล้ว","success");
+
+}
+
+
+/* =====================================================
+   GPS
+===================================================== */
+
+function getLocation(){
+
+    if(!navigator.geolocation){
+        toast("อุปกรณ์นี้ไม่รองรับ GPS","danger");
+        return;
+    }
+
+    const btn = document.getElementById("gpsBtn");
+
+    btn.disabled = true;
+    btn.textContent = "📍 กำลังค้นหาตำแหน่ง...";
+
+    navigator.geolocation.getCurrentPosition(
+
+        position => {
+
+            currentPosition = {
+                lat:position.coords.latitude,
+                lng:position.coords.longitude,
+                accuracy:position.coords.accuracy
+            };
+
+            currentDistance = calculateDistance(
+                currentPosition.lat,
+                currentPosition.lng,
+                OFFICE_LAT,
+                OFFICE_LNG
+            );
+
+            showGPS();
+
+            btn.disabled = false;
+            btn.textContent = "📍 ตรวจสอบตำแหน่งอีกครั้ง";
+
+        },
+
+        error => {
+
+            console.error(error);
+
+            btn.disabled = false;
+            btn.textContent = "📍 ตรวจสอบตำแหน่ง";
+
+            let msg = "ไม่สามารถรับตำแหน่งได้";
+
+            if(error.code === 1){
+                msg = "กรุณาอนุญาตให้เว็บไซต์ใช้ตำแหน่ง";
+            }
+            if(error.code === 2){
+                msg = "ไม่พบตำแหน่ง GPS";
+            }
+            if(error.code === 3){
+                msg = "GPS ใช้เวลานานเกินไป";
+            }
+
+            toast(msg,"danger");
+
+        },
+
+        {
+            enableHighAccuracy:true,
+            timeout:15000,
+            maximumAge:0
+        }
+
+    );
+
+}
+
+function calculateDistance(lat1,lon1,lat2,lon2){
+
+    const R = 6371000;
+
+    const p1 = lat1 * Math.PI / 180;
+    const p2 = lat2 * Math.PI / 180;
+    const dp = (lat2-lat1) * Math.PI / 180;
+    const dl = (lon2-lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dp/2) * Math.sin(dp/2) +
+        Math.cos(p1) * Math.cos(p2) *
+        Math.sin(dl/2) * Math.sin(dl/2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+    return R * c;
+
+}
+
+function showGPS(){
+
+    const distance = document.getElementById("distanceText");
+    const gps = document.getElementById("gpsText");
+
+    distance.textContent = `${Math.round(currentDistance)} ม.`;
+
+    if(currentDistance <= OFFICE_RADIUS){
+
+        distance.style.color = "var(--success)";
+
+        gps.textContent =
+            `อยู่ในพื้นที่ · ความแม่นยำประมาณ ${Math.round(currentPosition.accuracy)} ม.`;
+
+    }
+    else{
+
+        distance.style.color = "var(--danger)";
+
+        gps.textContent =
+            `อยู่นอกพื้นที่ · ต้องอยู่ภายใน ${OFFICE_RADIUS} ม.`;
+
+    }
+
+}
+
+
+/* =====================================================
+   CAMERA
+===================================================== */
+
+async function startCamera(){
+
+    try{
+
+        if(cameraStream){
+            cameraStream.getTracks().forEach(t => t.stop());
+        }
+
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video:{ facingMode:"user" },
+            audio:false
+        });
+
+        const video = document.getElementById("cameraVideo");
+
+        video.srcObject = cameraStream;
+        video.classList.remove("hidden");
+
+        document.getElementById("cameraPlaceholder").classList.add("hidden");
+        document.getElementById("photoPreview").style.display = "none";
+
+        await video.play();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        toast("เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง","danger");
+
+    }
+
+}
+
+function takePhoto(){
+
+    const video = document.getElementById("cameraVideo");
+
+    if(!cameraStream || !video.videoWidth){
+        toast("กรุณาเปิดกล้องก่อน","warning");
+        return;
+    }
+
+    const scale = Math.min(1, 800 / video.videoWidth);
+    const width = Math.round(video.videoWidth * scale);
+    const height = Math.round(video.videoHeight * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video,0,0,width,height);
+
+    canvas.toBlob(
+        blob => {
+
+            photoBlob = blob;
+
+            const preview = document.getElementById("photoPreview");
+
+            preview.src = URL.createObjectURL(blob);
+            preview.style.display = "block";
+
+            video.classList.add("hidden");
+
+            document.getElementById("retakeBtn").classList.remove("hidden");
+
+            if(cameraStream){
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            toast("ถ่ายรูปเรียบร้อย","success");
+
+        },
+        "image/jpeg",
+        .75
+    );
+
+}
+
+function retakePhoto(){
+
+    photoBlob = null;
+
+    document.getElementById("photoPreview").style.display = "none";
+    document.getElementById("retakeBtn").classList.add("hidden");
+
+    startCamera();
+
+}
+
+
+/* =====================================================
+   DATE / TIME
+===================================================== */
+
+function getBangkokNow(){
+
+    return new Date(
+        new Date().toLocaleString(
+            "en-US",
+            { timeZone:"Asia/Bangkok" }
+        )
+    );
+
+}
+
+function getWorkDate(){
+
+    /* en-CA ให้รูปแบบ YYYY-MM-DD */
+    return new Date().toLocaleDateString(
+        "en-CA",
+        { timeZone:"Asia/Bangkok" }
+    );
+
+}
+
+function formatDateTime(value){
+
+    if(!value){
+        return "-";
+    }
+
+    return new Date(value).toLocaleString(
+        "th-TH",
+        {
+            timeZone:"Asia/Bangkok",
+            year:"numeric",
+            month:"2-digit",
+            day:"2-digit",
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+}
+
+
+/* =====================================================
+   SHIFT / LATE
+===================================================== */
+
+function getLateStatus(shift){
+
+    const d = getBangkokNow();
+    const total = d.getHours() * 60 + d.getMinutes();
+
+    if(shift === "กะ A"){
+        return total > 7*60 ? "สาย" : "ตรงเวลา";
+    }
+
+    if(shift === "กะ B"){
+        return total > 19*60 ? "สาย" : "ตรงเวลา";
+    }
+
+    return "ตรงเวลา";
+
+}
+
+
+/* =====================================================
+   TODAY RECORD
+===================================================== */
+
+async function loadTodayRecord(){
+
+    const name = document.getElementById("employeeName").value.trim();
+
+    if(!name){
+        todayRecord = null;
+        updateTodayStatus(null);
+        return;
+    }
+
+    try{
+
+        const { data, error } =
+            await supabaseClient
+                .from("attendance_logs")
+                .select("*")
+                .eq("name",name)
+                .eq("work_date",getWorkDate())
+                .order("id",{ascending:false})
+                .limit(1)
+                .maybeSingle();
+
+        if(error){
+            console.error(error);
+            return;
+        }
+
+        todayRecord = data;
+
+        updateTodayStatus(data);
+
+    }
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+function updateTodayStatus(record){
+
+    const box = document.getElementById("todayStatus");
+    const checkinBtn = document.getElementById("checkinBtn");
+    const checkoutBtn = document.getElementById("checkoutBtn");
+
+    if(!record){
+
+        box.innerHTML = `
+            <div class="check-label">ยังไม่มีการเช็กอิน</div>
+        `;
+
+        checkinBtn.disabled = false;
+        checkoutBtn.disabled = true;
+
+        return;
+    }
+
+    const checkin = record.checkin_at || record.created_at;
+    const checkout = record.checkout_at;
+
+    box.innerHTML = `
+
+        <div class="check-label">เช็กอิน</div>
+
+        <div class="check-time">${formatDateTime(checkin)}</div>
+
+        <div style="margin-top:8px">
+            ${
+                record.status === "สาย"
+                ? `<span class="badge badge-danger">🔴 สาย</span>`
+                : `<span class="badge badge-success">🟢 ตรงเวลา</span>`
+            }
+        </div>
+
+        ${
+            checkout
+            ? `
+            <div style="margin-top:15px">
+                <div class="check-label">เช็กเอาต์</div>
+                <div class="check-time">${formatDateTime(checkout)}</div>
+            </div>
+            `
+            : `
+            <div style="margin-top:10px">
+                <span class="badge badge-warning">🟡 ยังไม่เช็กเอาต์</span>
+            </div>
+            `
+        }
+
+    `;
+
+    checkinBtn.disabled = true;
+    checkoutBtn.disabled = !!checkout;
+
+}
+
+
+/* =====================================================
+   UPLOAD PHOTO
+   เก็บใน bucket แบบ private โฟลเดอร์ = user id
+   (ชื่อไฟล์ต้องเป็นตัวอักษรอังกฤษ/ตัวเลข Supabase ไม่รับภาษาไทยใน key)
+===================================================== */
+
+async function uploadPhoto(){
+
+    if(!photoBlob){
+        return null;
+    }
+
+    const { data:{ session } } = await supabaseClient.auth.getSession();
+
+    if(!session){
+        throw new Error("ไม่พบ session กรุณารีเฟรชหน้าเว็บ");
+    }
+
+    const path = `${session.user.id}/${Date.now()}.jpg`;
+
+    const { error } =
+        await supabaseClient
+            .storage
+            .from(STORAGE_BUCKET)
+            .upload(path,photoBlob,{
+                contentType:"image/jpeg",
+                upsert:false
+            });
+
+    if(error){
+        throw new Error("อัปโหลดรูปไม่สำเร็จ: " + error.message);
+    }
+
+    return path;
+
+}
+
+
+/* =====================================================
+   VALIDATE FORM
+===================================================== */
+
+function validateCheckin(){
+
+    const name = document.getElementById("employeeName").value.trim();
+    const shift = document.getElementById("employeeShift").value;
+
+    if(!name){
+        toast("กรุณากรอกชื่อพนักงาน","warning");
+        return false;
+    }
+
+    if(!shift){
+        toast("กรุณาเลือกกะทำงาน","warning");
+        return false;
+    }
+
+    if(!currentPosition){
+        toast("กรุณาตรวจสอบตำแหน่ง GPS","warning");
+        return false;
+    }
+
+    if(currentDistance > OFFICE_RADIUS){
+        toast(`อยู่นอกพื้นที่ ${Math.round(currentDistance)} เมตร`,"danger");
+        return false;
+    }
+
+    if(!photoBlob){
+        toast("กรุณาถ่ายรูปก่อนเช็กอิน","warning");
+        return false;
+    }
+
+    return true;
+
+}
+
+
+/* =====================================================
+   CHECK IN
+===================================================== */
+
+async function checkIn(){
+
+    if(!validateCheckin()){
+        return;
+    }
+
+    if(todayRecord){
+        toast("วันนี้มีข้อมูลเช็กอินแล้ว","warning");
+        return;
+    }
+
+    const name = document.getElementById("employeeName").value.trim();
+    const shift = document.getElementById("employeeShift").value;
+
+    const btn = document.getElementById("checkinBtn");
+
+    btn.disabled = true;
+    btn.textContent = "⏳ กำลังบันทึก...";
+
+    try{
+
+        const { data:{ session } } = await supabaseClient.auth.getSession();
+
+        if(!session){
+            throw new Error("ไม่พบ session กรุณารีเฟรชหน้าเว็บ");
+        }
+
+        const photoPath = await uploadPhoto();
+
+        const now = new Date().toISOString();
+        const status = getLateStatus(shift);
+
+        const insertData = {
+            user_id:session.user.id,
+            name:name,
+            shift:shift,
+            distance:Math.round(currentDistance),
+            lat:currentPosition.lat,
+            lng:currentPosition.lng,
+            photo:photoPath,
+            status:status,
+            created_at:now,
+            checkin_at:now,
+            work_date:getWorkDate()
+        };
+
+        const { data, error } =
+            await supabaseClient
+                .from("attendance_logs")
+                .insert(insertData)
+                .select()
+                .single();
+
+        if(error){
+            throw error;
+        }
+
+        todayRecord = data;
+
+        localStorage.setItem("employee-name",name);
+        localStorage.setItem("employee-shift",shift);
+
+        updateTodayStatus(data);
+
+        toast(
+            data.status === "สาย"
+            ? "เช็กอินสำเร็จ — สถานะสาย"
+            : "เช็กอินสำเร็จ — ตรงเวลา",
+            data.status === "สาย" ? "warning" : "success"
+        );
+
+        await loadTodayLogs();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        toast("เช็กอินไม่สำเร็จ: " + error.message,"danger");
+
+        btn.disabled = false;
+
+    }
+    finally{
+
+        btn.textContent = "📍 เช็กอิน";
+
+    }
+
+}
+
+
+/* =====================================================
+   CHECK OUT
+===================================================== */
+
+async function checkOut(){
+
+    if(!todayRecord){
+        toast("ยังไม่มีข้อมูลเช็กอิน","warning");
+        return;
+    }
+
+    if(todayRecord.checkout_at){
+        toast("เช็กเอาต์ไปแล้ว","warning");
+        return;
+    }
+
+    if(!currentPosition){
+        toast("กรุณาตรวจสอบตำแหน่งก่อนเช็กเอาต์","warning");
+        return;
+    }
+
+    if(currentDistance > OFFICE_RADIUS){
+        toast(`อยู่นอกพื้นที่ ${Math.round(currentDistance)} เมตร`,"danger");
+        return;
+    }
+
+    if(!confirm("ยืนยันการเช็กเอาต์?")){
+        return;
+    }
+
+    const btn = document.getElementById("checkoutBtn");
+
+    btn.disabled = true;
+    btn.textContent = "⏳ กำลังบันทึก...";
+
+    try{
+
+        const { data, error } =
+            await supabaseClient
+                .from("attendance_logs")
+                .update({ checkout_at:new Date().toISOString() })
+                .eq("id",todayRecord.id)
+                .select()
+                .single();
+
+        if(error){
+            throw error;
+        }
+
+        todayRecord = data;
+
+        updateTodayStatus(data);
+
+        toast("เช็กเอาต์สำเร็จ","success");
+
+        await loadTodayLogs();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        toast("เช็กเอาต์ไม่สำเร็จ: " + error.message,"danger");
+
+        btn.disabled = false;
+
+    }
+    finally{
+
+        btn.textContent = "🏁 เช็กเอาต์";
+
+    }
+
+}
+
+
+/* =====================================================
+   TODAY LOGS (ของเครื่องนี้เท่านั้น — RLS กรองให้)
+===================================================== */
+
+async function loadTodayLogs(){
+
+    const container = document.getElementById("todayLogs");
+
+    container.innerHTML = `
+        <div class="card">
+            <div class="empty">🔄 กำลังโหลดข้อมูล...</div>
+        </div>
+    `;
+
+    try{
+
+        const { data, error } =
+            await supabaseClient
+                .from("attendance_logs")
+                .select("*")
+                .eq("work_date",getWorkDate())
+                .order("id",{ascending:false});
+
+        if(error){
+            throw error;
+        }
+
+        renderLogs(container,data || []);
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        container.innerHTML = `
+            <div class="card">
+                <div class="status-box status-danger">โหลดข้อมูลไม่ได้</div>
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   RENDER LOGS
+===================================================== */
+
+function renderLogs(container,logs){
+
+    if(!logs.length){
+
+        container.innerHTML = `
+            <div class="card">
+                <div class="empty">ยังไม่มีรายการวันนี้</div>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = logs.map(createLogHTML).join("");
+
+}
+
+function createLogHTML(log){
+
+    const status =
+        log.status === "สาย"
+        ? `<span class="badge badge-danger">🔴 สาย</span>`
+        : `<span class="badge badge-success">🟢 ตรงเวลา</span>`;
+
+    const checkout =
+        log.checkout_at
+        ? formatDateTime(log.checkout_at)
+        : "ยังไม่เช็กเอาต์";
+
+    return `
+
+        <div class="log-item">
+
+            <div class="log-top">
+                <div>
+                    <div class="log-name">${escapeHTML(log.name || "-")}</div>
+                    <div class="log-date">${escapeHTML(log.shift || "-")}</div>
+                </div>
+                <div>${status}</div>
+            </div>
+
+            <div class="log-row">
+                <span>📍 ระยะทาง</span>
+                <strong>${escapeHTML(log.distance ?? "-")} ม.</strong>
+            </div>
+
+            <div class="log-row">
+                <span>🟢 เข้า</span>
+                <strong>${formatDateTime(log.checkin_at || log.created_at)}</strong>
+            </div>
+
+            <div class="log-row">
+                <span>🔴 ออก</span>
+                <strong>${checkout}</strong>
+            </div>
+
+            ${
+                log.photo
+                ? `
+                <a class="photo-link"
+                   href="javascript:void(0)"
+                   data-photo="${escapeHTML(log.photo)}"
+                   onclick="showImage(this.dataset.photo)">
+                    📷 ดูรูปหลักฐาน
+                </a>
+                `
+                : ""
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   ADMIN LOGIN (Supabase Auth)
+===================================================== */
+
+async function adminLogin(){
+
+    const email = document.getElementById("adminEmail").value.trim();
+    const password = document.getElementById("adminPassword").value;
+
+    if(!email || !password){
+        toast("กรุณากรอกอีเมลและรหัสผ่าน","warning");
+        return;
+    }
+
+    const btn = document.getElementById("adminLoginBtn");
+
+    btn.disabled = true;
+    btn.textContent = "⏳ กำลังเข้าสู่ระบบ...";
+
+    try{
+
+        const { error } =
+            await adminClient.auth.signInWithPassword({ email, password });
+
+        if(error){
+            throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        }
+
+        /* ตรวจสิทธิ์ที่ฝั่งฐานข้อมูล ไม่ใช่แค่ล็อกอินผ่าน */
+        const { data:isAdmin, error:roleError } =
+            await adminClient.rpc("is_admin");
+
+        if(roleError || !isAdmin){
+            await adminClient.auth.signOut();
+            throw new Error("บัญชีนี้ไม่มีสิทธิ์ Admin");
+        }
+
+        adminLoggedIn = true;
+
+        document.getElementById("adminPassword").value = "";
+        document.getElementById("adminLoginCard").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+
+        toast("เข้าสู่ระบบ Admin แล้ว","success");
+
+        await loadAdminLogs();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        toast(error.message,"danger");
+
+    }
+    finally{
+
+        btn.disabled = false;
+        btn.textContent = "🔐 เข้าสู่ระบบ";
+
+    }
+
+}
+
+async function adminLogout(){
+
+    await adminClient.auth.signOut();
+
+    adminLoggedIn = false;
+    adminData = [];
+
+    document.getElementById("adminLogs").innerHTML = "";
+    document.getElementById("adminSearch").value = "";
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminLoginCard").classList.remove("hidden");
+
+    toast("ออกจากระบบแล้ว","info");
+
+}
+
+
+/* =====================================================
+   ADMIN DATA
+===================================================== */
+
+async function loadAdminLogs(){
+
+    if(!adminLoggedIn){
+        return;
+    }
+
+    try{
+
+        const { data, error } =
+            await adminClient
+                .from("attendance_logs")
+                .select("*")
+                .eq("work_date",getWorkDate())
+                .order("id",{ascending:false});
+
+        if(error){
+            throw error;
+        }
+
+        adminData = data || [];
+
+        updateAdminStats();
+        filterAdminLogs();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        toast("โหลดข้อมูล Admin ไม่สำเร็จ","danger");
+
+    }
+
+}
+
+function updateAdminStats(){
+
+    const total = adminData.length;
+    const late = adminData.filter(x => x.status === "สาย").length;
+    const ontime = total - late;
+
+    document.getElementById("statTotal").textContent = total;
+    document.getElementById("statOnTime").textContent = ontime;
+    document.getElementById("statLate").textContent = late;
+
+}
+
+function renderAdminLogs(logs){
+
+    const container = document.getElementById("adminLogs");
+
+    if(!logs.length){
+
+        container.innerHTML = `
+            <div class="card">
+                <div class="empty">ไม่มีข้อมูลวันนี้</div>
+            </div>
+        `;
+
+        return;
+    }
+
+    renderLogs(container,logs);
+
+}
+
+function filterAdminLogs(){
+
+    const keyword =
+        document.getElementById("adminSearch").value
+            .trim()
+            .toLowerCase();
+
+    const filtered = adminData.filter(
+        log => String(log.name || "").toLowerCase().includes(keyword)
+    );
+
+    renderAdminLogs(filtered);
+
+}
+
+
+/* =====================================================
+   IMAGE (bucket เป็น private → ใช้ signed URL อายุ 5 นาที)
+===================================================== */
+
+async function resolvePhotoUrl(photo){
+
+    if(!photo){
+        return null;
+    }
+
+    let path = photo;
+
+    /* รองรับข้อมูลเก่าที่เก็บเป็น public URL */
+    if(/^https?:/i.test(photo)){
+
+        const match = photo.match(/\/attendance-photos\/([^?]+)/);
+
+        if(!match){
+            return photo;
+        }
+
+        path = decodeURIComponent(match[1]);
+    }
+
+    const client = adminLoggedIn ? adminClient : supabaseClient;
+
+    const { data, error } =
+        await client
+            .storage
+            .from(STORAGE_BUCKET)
+            .createSignedUrl(path,300);
+
+    if(error){
+        console.error(error);
+        return null;
+    }
+
+    return data.signedUrl;
+
+}
+
+async function showImage(photo){
+
+    const url = await resolvePhotoUrl(photo);
+
+    if(!url){
+        toast("โหลดรูปไม่สำเร็จ","danger");
+        return;
+    }
+
+    document.getElementById("modalImage").src = url;
+    document.getElementById("imageModal").classList.add("show");
+
+}
+
+function closeImageModal(){
+
+    document.getElementById("imageModal").classList.remove("show");
+
+}
+
+
+/* =====================================================
+   SECURITY HELPERS
+===================================================== */
+
+function escapeHTML(value){
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =====================================================
+   AUTO UPDATE AFTER NAME / SHIFT CHANGE
+===================================================== */
+
+document.getElementById("employeeName").addEventListener(
+    "change",
+    async function(){
+
+        localStorage.setItem("employee-name",this.value.trim());
+
+        todayRecord = null;
+
+        await loadTodayRecord();
+
+    }
+);
+
+document.getElementById("employeeShift").addEventListener(
+    "change",
+    function(){
+
+        localStorage.setItem("employee-shift",this.value);
+
+    }
+);
+
+</script>
+
+</body>
+</html>
